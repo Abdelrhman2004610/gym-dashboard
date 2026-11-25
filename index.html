@@ -5,96 +5,142 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gym Dashboard</title>
   <style>
+    :root {
+      --bg: #f2f4f0;
+      --surface: #ffffff;
+      --ink: #14181d;
+      --muted: #5d6670;
+      --line: #dde1d8;
+      --accent: #3f7a12;
+      --accent-soft: #e9f4da;
+      --dark: #14181d;
+      --danger: #b3261e;
+      --danger-soft: #fdecea;
+      --ok: #2e7d32;
+      --ok-soft: #e6f3e6;
+      --warn: #8a6100;
+      --warn-soft: #fdf3d7;
+      --radius: 16px;
+      --shadow: 0 8px 28px rgba(20, 24, 29, 0.08);
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background: #f4f5f1; color: #1a1d21; line-height: 1.6; }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
-    h1 { font-size: 30px; margin: 0 0 4px; }
-    .subtitle { color: #5b636e; margin: 0 0 20px; }
-    .status { background: #fff8e1; border: 1px solid #f0d48a; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-weight: 600; }
-    .status.connected { background: #e6f3e6; border-color: #9ccc9e; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab { flex: 1; padding: 12px; font: inherit; font-weight: 700; font-size: 16px; background: #fff; border: 1.5px solid #d9dcd2; border-radius: 10px; cursor: pointer; }
-    .tab.active { background: #1a1d21; color: #fff; border-color: #1a1d21; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+    header { background: var(--dark); color: #fff; }
+    .header-inner { max-width: 760px; margin: 0 auto; padding: 22px 16px; display: flex; align-items: center; gap: 14px; }
+    .logo { width: 48px; height: 48px; border-radius: 14px; background: #bef264; color: #1a2005; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; flex: 0 0 auto; }
+    header h1 { font-size: 24px; margin: 0; line-height: 1.2; }
+    header p { margin: 2px 0 0; color: #b9c0b8; font-size: 14px; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    .tabs { display: flex; gap: 6px; background: #e3e6df; border-radius: 12px; padding: 6px; margin-bottom: 20px; }
+    .tab { flex: 1; padding: 12px; font: inherit; font-weight: 800; font-size: 16px; background: transparent; color: var(--muted); border: 0; border-radius: 9px; cursor: pointer; }
+    .tab.active { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(20, 24, 29, 0.12); }
     .panel { display: none; }
     .panel.active { display: block; }
-    .card { background: #fff; border: 1px solid #d9dcd2; border-radius: 14px; padding: 22px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow); }
     .card h2 { margin: 0 0 4px; font-size: 22px; }
-    .card p { color: #5b636e; margin: 0 0 18px; }
-    label { display: block; font-weight: 700; margin: 14px 0 6px; }
-    label .req { color: #b3261e; }
-    input, select { width: 100%; font: inherit; padding: 11px 12px; border: 1.5px solid #d9dcd2; border-radius: 10px; background: #fff; }
-    input:focus, select:focus { outline: 2px solid #4d7c0f; border-color: #4d7c0f; }
+    .card .sub { color: var(--muted); margin: 0 0 20px; }
+    label { display: block; font-weight: 700; margin: 16px 0 6px; font-size: 15px; }
+    label .req { color: var(--danger); }
+    input, select { width: 100%; font: inherit; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
+    input:focus, select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
     .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    @media (max-width: 560px) { .plans { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .plans { grid-template-columns: repeat(2, 1fr); } }
     .plan { display: block; cursor: pointer; }
     .plan input { position: absolute; opacity: 0; }
-    .plan span { display: block; text-align: center; border: 1.5px solid #d9dcd2; border-radius: 10px; padding: 12px 6px; font-weight: 700; background: #f8f9f5; }
-    .plan small { display: block; color: #5b636e; font-weight: 400; }
-    .plan input:checked + span { border-color: #4d7c0f; background: #eef6da; }
-    .preview { margin-top: 14px; background: #eef6da; border-radius: 10px; padding: 10px 14px; font-weight: 700; display: none; }
+    .plan span { display: block; text-align: center; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 6px; font-weight: 800; background: #f8f9f5; transition: border-color .12s, background .12s; }
+    .plan small { display: block; color: var(--muted); font-weight: 400; margin-top: 2px; }
+    .plan input:checked + span { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1.5px var(--accent); }
+    .preview { margin-top: 16px; background: var(--accent-soft); border-radius: 10px; padding: 12px 16px; font-weight: 700; display: none; }
     .preview.show { display: block; }
-    .btn { font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 12px 24px; cursor: pointer; background: #4d7c0f; color: #fff; margin-top: 20px; }
-    .btn.secondary { background: #1a1d21; }
-    .btn.ghost { background: transparent; color: #1a1d21; border: 1.5px solid #d9dcd2; }
-    .msg { margin-top: 16px; border-radius: 10px; padding: 14px; font-weight: 700; display: none; }
+    .btn { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 13px 26px; cursor: pointer; background: var(--accent); color: #fff; margin-top: 22px; width: 100%; font-size: 17px; }
+    .btn:hover { filter: brightness(1.07); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+    .msg { margin-top: 16px; border-radius: 12px; padding: 14px 16px; font-weight: 700; display: none; }
     .msg.show { display: block; }
-    .msg.error { background: #fbeae8; color: #b3261e; }
-    .msg.ok { background: #e6f3e6; color: #2e7d32; }
-    .member-id { font-size: 36px; font-weight: 800; text-align: center; letter-spacing: 1px; margin: 8px 0; }
-    .center { text-align: center; }
-    .result { margin-top: 18px; border-radius: 10px; padding: 20px; text-align: center; display: none; }
-    .result.show { display: block; }
-    .result h3 { margin: 0 0 4px; font-size: 24px; }
-    .result p { margin: 4px 0; }
-    .result.ok { background: #e6f3e6; }
-    .result.expired { background: #fbeae8; }
-    .result.notfound { background: #eceee7; }
+    .msg.error { background: var(--danger-soft); color: var(--danger); }
+    .success { text-align: center; padding: 8px 0 4px; }
+    .success .check { width: 64px; height: 64px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); font-size: 34px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .success h3 { margin: 0 0 4px; font-size: 22px; }
+    .success p { color: var(--muted); margin: 0 0 14px; }
+    .member-id { font-size: 40px; font-weight: 800; letter-spacing: 2px; margin: 10px 0; direction: ltr; }
+    .details { background: #f8f9f5; border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; text-align: left; margin-top: 16px; }
+    .details div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+    .details div:last-child { border-bottom: 0; }
+    .details span { color: var(--muted); }
+    .details b { text-align: right; }
     .check-row { display: flex; gap: 10px; }
-    .check-row input { flex: 1; font-size: 20px; font-weight: 700; text-align: center; }
-    .check-row .btn { margin-top: 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 15px; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #d9dcd2; }
-    th { color: #5b636e; }
-    .empty { color: #5b636e; text-align: center; border: 1.5px dashed #d9dcd2; border-radius: 10px; padding: 14px; margin-top: 20px; }
-    hr { border: 0; border-top: 1px solid #d9dcd2; margin: 24px 0; }
-    .small { font-size: 14px; color: #5b636e; }
-    footer { margin-top: 32px; text-align: center; color: #5b636e; font-size: 14px; }
+    .check-row input { flex: 1; font-size: 20px; font-weight: 700; text-align: center; letter-spacing: 1px; }
+    .check-row .btn { margin-top: 0; width: auto; }
+    .result { margin-top: 20px; border-radius: var(--radius); padding: 24px; text-align: center; display: none; }
+    .result.show { display: block; }
+    .result.ok { background: var(--ok-soft); }
+    .result.expired { background: var(--danger-soft); }
+    .result.frozen { background: var(--warn-soft); }
+    .result.notfound { background: #eceee7; }
+    .badge { display: inline-block; font-weight: 800; font-size: 14px; border-radius: 999px; padding: 5px 14px; margin-bottom: 10px; background: #fff; }
+    .result.ok .badge { color: var(--ok); }
+    .result.expired .badge { color: var(--danger); }
+    .result.frozen .badge { color: var(--warn); }
+    .result.notfound .badge { color: var(--muted); }
+    .result h3 { margin: 0 0 4px; font-size: 26px; }
+    .result p { margin: 4px 0; }
+    .result .det { color: var(--muted); }
+    .result .det b { color: var(--ink); }
+    footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 14px; }
   </style>
 </head>
 <body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">G</div>
+      <div>
+        <h1>Gym Dashboard</h1>
+        <p>Register a new member, or check a membership.</p>
+      </div>
+    </div>
+  </header>
+
   <main class="wrap">
-    <h1>Gym Dashboard</h1>
-    <p class="subtitle">Register a new member, or check a membership.</p>
-
-    <div class="status" id="modeBox">Demo mode — not connected to n8n yet. Register below to try it, or connect it in the Connect tab.</div>
-
     <nav class="tabs">
       <button class="tab active" data-tab="register" type="button">Register Member</button>
       <button class="tab" data-tab="check" type="button">Check Membership</button>
-      <button class="tab" data-tab="connect" type="button">Connect</button>
     </nav>
 
+    <!-- Register -->
     <section class="panel active" id="panel-register">
-      <div class="card">
+      <div class="card" id="registerCard">
         <h2>Register a new member</h2>
-        <p>Fill in the details and press Register. The member gets an ID and an end date automatically.</p>
+        <p class="sub">Fill in the details. The member gets an ID and an end date automatically.</p>
         <form id="regForm" novalidate>
           <label for="fName">Full name <span class="req">*</span></label>
-          <input id="fName" type="text" placeholder="e.g. Ahmed Mohamed Ali" required />
+          <input id="fName" type="text" placeholder="e.g. Ahmed Mohamed Ali" autocomplete="name" required />
+
           <label for="fPhone">Phone number <span class="req">*</span></label>
-          <input id="fPhone" type="tel" placeholder="01xxxxxxxxx" required />
-          <label for="fBirth">Date of birth</label>
-          <input id="fBirth" type="date" />
-          <label for="fGoal">Goal</label>
-          <select id="fGoal">
-            <option value="">— Select —</option>
-            <option>Lose weight</option>
-            <option>Build muscle</option>
-            <option>General fitness</option>
-            <option>Strength</option>
-          </select>
+          <input id="fPhone" type="tel" placeholder="01xxxxxxxxx" autocomplete="tel" required />
+
+          <div class="row">
+            <div>
+              <label for="fBirth">Date of birth</label>
+              <input id="fBirth" type="date" />
+            </div>
+            <div>
+              <label for="fGoal">Goal</label>
+              <select id="fGoal">
+                <option value="">— Select —</option>
+                <option>Lose weight</option>
+                <option>Build muscle</option>
+                <option>General fitness</option>
+                <option>Strength</option>
+              </select>
+            </div>
+          </div>
+
           <label for="fPhoto">Photo link (Google Drive, optional)</label>
           <input id="fPhoto" type="url" placeholder="Paste the Drive link here" />
+
           <label>Plan <span class="req">*</span></label>
           <div class="plans">
             <label class="plan"><input type="radio" name="plan" value="Monthly" data-days="30" /><span>Monthly<small>30 days</small></span></label>
@@ -104,6 +150,7 @@
             <label class="plan"><input type="radio" name="plan" value="Student" data-days="30" /><span>Student<small>30 days</small></span></label>
             <label class="plan"><input type="radio" name="plan" value="PT" data-days="30" /><span>Personal Training<small>30 days + coach</small></span></label>
           </div>
+
           <div id="coachField" style="display:none">
             <label for="fCoach">Coach <span class="req">*</span></label>
             <select id="fCoach">
@@ -114,33 +161,46 @@
               <option>Coach Khaled</option>
             </select>
           </div>
-          <label for="fPayMethod">Payment method</label>
-          <select id="fPayMethod">
-            <option>Cash</option>
-            <option>InstaPay</option>
-            <option>Vodafone Cash</option>
-            <option>Card</option>
-          </select>
-          <label for="fPaid">Amount paid (EGP)</label>
-          <input id="fPaid" type="number" min="0" placeholder="0" />
+
+          <div class="row">
+            <div>
+              <label for="fPayMethod">Payment method</label>
+              <select id="fPayMethod">
+                <option>Cash</option>
+                <option>InstaPay</option>
+                <option>Vodafone Cash</option>
+                <option>Card</option>
+              </select>
+            </div>
+            <div>
+              <label for="fPaid">Amount paid (EGP)</label>
+              <input id="fPaid" type="number" min="0" placeholder="0" />
+            </div>
+          </div>
+
           <div class="preview" id="expiryPreview"></div>
           <button class="btn" id="regSubmit" type="submit">Register Member</button>
-          <button class="btn ghost" type="reset">Clear</button>
           <div class="msg" id="regMsg"></div>
         </form>
-        <h3 style="margin-top:28px">Registered in this session</h3>
-        <div id="sessionEmpty" class="empty">No members registered yet in this session.</div>
-        <table id="sessionTable" style="display:none">
-          <thead><tr><th>Member ID</th><th>Name</th><th>Plan</th><th>Ends</th></tr></thead>
-          <tbody id="sessionBody"></tbody>
-        </table>
+      </div>
+
+      <div class="card" id="successCard" style="display:none">
+        <div class="success">
+          <div class="check">✓</div>
+          <h3>Member registered</h3>
+          <p>Give this ID to the member.</p>
+          <div class="member-id" id="successId"></div>
+          <div class="details" id="successDetails"></div>
+          <button class="btn ghost" id="againBtn" type="button">Register another member</button>
+        </div>
       </div>
     </section>
 
+    <!-- Check -->
     <section class="panel" id="panel-check">
       <div class="card">
         <h2>Check membership</h2>
-        <p>Enter the member ID to see the member's name and membership status.</p>
+        <p class="sub">Enter the member ID to see the member's name and membership status.</p>
         <form id="checkForm" novalidate>
           <div class="check-row">
             <input id="checkId" type="text" placeholder="G-123456" autocomplete="off" aria-label="Member ID" />
@@ -148,59 +208,24 @@
           </div>
         </form>
         <div class="result" id="checkResult"></div>
-        <p class="small" id="demoNote">In demo mode you can only check members registered in this session. Connect n8n to check real members from the sheet.</p>
       </div>
     </section>
 
-    <section class="panel" id="panel-connect">
-      <div class="card">
-        <h2>Connect to n8n</h2>
-        <p>Paste the Production Webhook URLs from your n8n workflows, then press Connect. After that, registrations and checks go to your Google Sheet.</p>
-        <label for="setRegister">Register webhook (gym-register)</label>
-        <input id="setRegister" type="url" placeholder="https://your-n8n.com/webhook/gym-register" />
-        <label for="setCheck">Check webhook (gym-check)</label>
-        <input id="setCheck" type="url" placeholder="https://your-n8n.com/webhook/gym-check" />
-        <button class="btn secondary" id="applyHooks" type="button">Connect</button>
-        <button class="btn ghost" id="clearHooks" type="button">Back to demo mode</button>
-        <div class="msg" id="hookMsg"></div>
-        <hr />
-        <p class="small">To make the connection permanent, open this file in a text editor and set these two lines near the bottom of the file, then upload it again:</p>
-        <p class="small"><code>WEBHOOK_REGISTER_URL = "https://your-n8n.com/webhook/gym-register";</code><br />
-        <code>WEBHOOK_CHECK_URL = "https://your-n8n.com/webhook/gym-check";</code></p>
-        <button class="btn ghost" id="downloadBtn" type="button">Download this file (index.html)</button>
-      </div>
-    </section>
-
-    <footer>Members are saved in the Gym System Google Sheet through n8n.</footer>
+    <footer>Gym Dashboard</footer>
   </main>
 
   <script>
+    // n8n Production Webhook URLs — fill these in with your own URLs.
     var WEBHOOK_REGISTER_URL = "";
     var WEBHOOK_CHECK_URL = "";
+
     function $(id) { return document.getElementById(id); }
     function fmtDate(d) { return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }); }
     function addDays(date, days) { var d = new Date(date); d.setDate(d.getDate() + days); return d; }
     function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
     function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
-    var members = [];
-    function findMember(id) {
-      id = (id || '').trim().toUpperCase();
-      for (var i = 0; i < members.length; i++) if (members[i].id.toUpperCase() === id) return members[i];
-      return null;
-    }
-    function memberState(m) {
-      if (m.status === 'Cancelled') return 'cancelled';
-      if (m.status === 'Frozen') return 'frozen';
-      if (today() > m.end) return 'expired';
-      return 'active';
-    }
-    function refreshMode() {
-      var on = !!(WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL);
-      var box = $('modeBox');
-      box.classList.toggle('connected', on);
-      box.textContent = on ? 'Connected to n8n — registrations and checks go to the sheet.' : 'Demo mode — not connected to n8n yet. Register below to try it, or connect it in the Connect tab.';
-      $('demoNote').style.display = on ? 'none' : '';
-    }
+
+    // Tabs
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.addEventListener('click', function () {
         document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
@@ -209,6 +234,8 @@
         $('panel-' + tab.getAttribute('data-tab')).classList.add('active');
       });
     });
+
+    // Plan + expiry preview
     var planRadios = document.querySelectorAll('input[name="plan"]');
     function selectedPlan() {
       for (var i = 0; i < planRadios.length; i++) if (planRadios[i].checked) return planRadios[i];
@@ -220,32 +247,43 @@
       var prev = $('expiryPreview');
       if (p) {
         var days = parseInt(p.getAttribute('data-days'), 10);
-        prev.innerHTML = 'Starts today, ' + fmtDate(today()) + ', and ends ' + fmtDate(addDays(today(), days)) + ' (' + days + ' days).';
+        prev.textContent = 'Starts today, ' + fmtDate(today()) + ', and ends ' + fmtDate(addDays(today(), days)) + ' (' + days + ' days).';
         prev.classList.add('show');
       } else { prev.classList.remove('show'); }
     }
     planRadios.forEach(function (r) { r.addEventListener('change', onPlanChange); });
+
     function showMsg(id, text, kind) {
       var el = $(id);
       el.textContent = text;
       el.className = 'msg' + (text ? ' show ' + kind : '');
     }
-    function genId() {
-      var n;
-      do { n = 'G-' + Math.floor(100000 + Math.random() * 900000); } while (findMember(n));
-      return n;
+    function genId() { return 'G-' + Math.floor(100000 + Math.random() * 900000); }
+
+    function showSuccess(id, name, plan, end, coach) {
+      $('successId').textContent = id;
+      var rows = [
+        ['Name', name],
+        ['Plan', plan],
+        ['Ends', fmtDate(end)]
+      ];
+      if (coach) rows.push(['Coach', coach]);
+      $('successDetails').innerHTML = rows.map(function (r) {
+        return '<div><span>' + r[0] + '</span><b></b></div>';
+      }).join('');
+      var bs = $('successDetails').querySelectorAll('b');
+      rows.forEach(function (r, i) { bs[i].textContent = r[1]; });
+      $('registerCard').style.display = 'none';
+      $('successCard').style.display = '';
     }
-    function addSessionRow(m) {
-      $('sessionEmpty').style.display = 'none';
-      $('sessionTable').style.display = '';
-      var tr = document.createElement('tr');
-      tr.innerHTML = '<td></td><td></td><td></td><td></td>';
-      tr.children[0].textContent = m.id;
-      tr.children[1].textContent = m.name;
-      tr.children[2].textContent = m.plan;
-      tr.children[3].textContent = fmtDate(m.end);
-      $('sessionBody').prepend(tr);
-    }
+    $('againBtn').addEventListener('click', function () {
+      $('successCard').style.display = 'none';
+      $('registerCard').style.display = '';
+      $('regForm').reset();
+      onPlanChange();
+    });
+
+    // Register
     $('regForm').addEventListener('submit', function (ev) {
       ev.preventDefault();
       var name = $('fName').value.trim();
@@ -257,6 +295,8 @@
       var isPT = plan.value === 'PT';
       var coach = $('fCoach').value;
       if (isPT && !coach) { showMsg('regMsg', 'Personal Training needs a coach.', 'error'); $('fCoach').focus(); return; }
+      if (!WEBHOOK_REGISTER_URL) { showMsg('regMsg', 'Registration is not available right now. Please try again later.', 'error'); return; }
+
       var days = parseInt(plan.getAttribute('data-days'), 10);
       var start = today();
       var end = addDays(start, days);
@@ -268,117 +308,77 @@
         payMethod: $('fPayMethod').value, paid: $('fPaid').value || '0',
         startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10)
       };
+
       var btn = $('regSubmit');
       btn.disabled = true; btn.textContent = 'Registering…';
-      function done(id, viaSheet) {
-        var m = { id: id, name: name, plan: plan.value, status: 'Active', start: start, end: end };
-        members.push(m);
-        addSessionRow(m);
-        var el = $('regMsg');
-        el.className = 'msg show ok';
-        el.innerHTML = (viaSheet ? 'Registered in the sheet.' : 'Registered in demo mode — this is only in this session, not in the sheet. Connect n8n to save it for real.') + '<div class="member-id"></div><div class="center"></div>';
-        el.querySelector('.member-id').textContent = id;
-        el.querySelector('.center').textContent = name + ' — ' + plan.value + ' — ends ' + fmtDate(end) + (isPT ? ' — Coach: ' + coach : '');
-        btn.disabled = false; btn.textContent = 'Register Member';
-        $('regForm').reset();
-        onPlanChange();
-      }
-      function fail(text) { showMsg('regMsg', text, 'error'); btn.disabled = false; btn.textContent = 'Register Member'; }
-      if (WEBHOOK_REGISTER_URL) {
-        fetch(WEBHOOK_REGISTER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-          .then(function (res) { if (!res.ok) throw new Error('bad'); return res.json().catch(function () { return {}; }); })
-          .then(function (data) { done((data && (data.id || data.memberId)) || genId(), true); })
-          .catch(function () { fail('Could not reach n8n. Check that the workflow is active and the link is correct, then try again.'); });
-      } else {
-        setTimeout(function () { done(genId(), false); }, 300);
-      }
+      fetch(WEBHOOK_REGISTER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(function (res) { if (!res.ok) throw new Error('bad'); return res.json().catch(function () { return {}; }); })
+        .then(function (data) {
+          btn.disabled = false; btn.textContent = 'Register Member';
+          showSuccess((data && (data.id || data.memberId)) || genId(), name, plan.value, end, isPT ? coach : '');
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = 'Register Member';
+          showMsg('regMsg', 'Something went wrong. Please try again.', 'error');
+        });
     });
-    $('regForm').addEventListener('reset', function () {
-      setTimeout(function () { $('coachField').style.display = 'none'; $('expiryPreview').classList.remove('show'); showMsg('regMsg', '', ''); }, 0);
-    });
-    function renderResult(kind, name, msg, det) {
+
+    // Check
+    function renderResult(kind, badge, name, msg, det) {
       var el = $('checkResult');
       el.className = 'result show ' + kind;
-      el.innerHTML = (name ? '<h3></h3>' : '') + '<p><b></b></p>' + (det ? '<p></p>' : '');
+      el.innerHTML = '<span class="badge"></span>' + (name ? '<h3></h3>' : '') + '<p><b></b></p>' + (det ? '<p class="det"></p>' : '');
+      el.querySelector('.badge').textContent = badge;
       if (name) el.querySelector('h3').textContent = name;
       el.querySelector('b').textContent = msg;
-      if (det) el.querySelectorAll('p')[1].textContent = det;
+      if (det) el.querySelector('.det').innerHTML = det;
     }
     function renderFromMember(m) {
-      var state = memberState(m);
+      var state = 'active';
+      if (m.status === 'Cancelled') state = 'cancelled';
+      else if (m.status === 'Frozen') state = 'frozen';
+      else if (today() > m.end) state = 'expired';
       if (state === 'active') {
-        renderResult('ok', m.name, 'Active — welcome to the gym', m.plan + ' — ' + daysBetween(today(), m.end) + ' days left — ends ' + fmtDate(m.end));
+        renderResult('ok', 'Active', m.name, 'Welcome to the gym',
+          m.plan + ' — <b>' + daysBetween(today(), m.end) + ' days left</b> — ends ' + fmtDate(m.end));
       } else if (state === 'expired') {
-        renderResult('expired', m.name, 'Expired — please renew before entry', m.plan + ' — ended on ' + fmtDate(m.end));
+        renderResult('expired', 'Expired', m.name, 'Please renew before entry',
+          m.plan + ' — ended on <b>' + fmtDate(m.end) + '</b>');
       } else if (state === 'frozen') {
-        renderResult('notfound', m.name, 'Frozen — please contact the gym', m.plan + ' — ends ' + fmtDate(m.end));
+        renderResult('frozen', 'Frozen', m.name, 'Please contact the gym',
+          m.plan + ' — ends ' + fmtDate(m.end));
       } else {
-        renderResult('expired', m.name, 'Cancelled', 'Please contact the gym to reactivate.');
+        renderResult('expired', 'Cancelled', m.name, 'Please contact the gym to reactivate.', '');
       }
     }
+
     $('checkForm').addEventListener('submit', function (ev) {
       ev.preventDefault();
       var id = $('checkId').value.trim();
-      if (!id) { renderResult('notfound', '', 'Please enter a member ID first.', ''); return; }
+      if (!id) { renderResult('notfound', '—', '', 'Please enter a member ID first.', ''); return; }
+      if (!WEBHOOK_CHECK_URL) { renderResult('notfound', '—', '', 'Checking is not available right now. Please try again later.', ''); return; }
       var btn = $('checkSubmit');
       btn.disabled = true; btn.textContent = 'Checking…';
-      function finish() { btn.disabled = false; btn.textContent = 'Check'; }
-      if (WEBHOOK_CHECK_URL) {
-        var url = WEBHOOK_CHECK_URL + (WEBHOOK_CHECK_URL.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id);
-        fetch(url).then(function (res) {
-          if (res.status === 404) throw new Error('nf');
-          if (!res.ok) throw new Error('bad');
-          return res.json();
-        }).then(function (data) {
-          if (!data || !data.found || !data.name) {
-            renderResult('notfound', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
-          } else {
-            renderFromMember({ id: id, name: data.name, plan: data.plan || '—', status: data.status || 'Active', start: data.startDate ? new Date(data.startDate) : today(), end: data.endDate ? new Date(data.endDate) : today() });
-          }
-          finish();
-        }).catch(function (err) {
-          if (err.message === 'nf') renderResult('notfound', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
-          else renderResult('notfound', '', 'Could not reach n8n', 'Check that the workflow is active and the link is correct, then try again.');
-          finish();
-        });
-      } else {
-        setTimeout(function () {
-          var m = findMember(id);
-          if (!m) renderResult('notfound', '', 'Member ID not found', 'In demo mode, only members registered in this session can be checked.');
-          else renderFromMember(m);
-          finish();
-        }, 250);
-      }
+      var url = WEBHOOK_CHECK_URL + (WEBHOOK_CHECK_URL.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id);
+      fetch(url).then(function (res) {
+        if (res.status === 404) throw new Error('nf');
+        if (!res.ok) throw new Error('bad');
+        return res.json();
+      }).then(function (data) {
+        btn.disabled = false; btn.textContent = 'Check';
+        if (!data || !data.found || !data.name) {
+          renderResult('notfound', 'Not found', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
+        } else {
+          renderFromMember({ id: id, name: data.name, plan: data.plan || '—', status: data.status || 'Active',
+            start: data.startDate ? new Date(data.startDate) : today(),
+            end: data.endDate ? new Date(data.endDate) : today() });
+        }
+      }).catch(function (err) {
+        btn.disabled = false; btn.textContent = 'Check';
+        if (err.message === 'nf') renderResult('notfound', 'Not found', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
+        else renderResult('notfound', '—', '', 'Something went wrong. Please try again.', '');
+      });
     });
-    $('applyHooks').addEventListener('click', function () {
-      WEBHOOK_REGISTER_URL = $('setRegister').value.trim();
-      WEBHOOK_CHECK_URL = $('setCheck').value.trim();
-      refreshMode();
-      if (WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL) showMsg('hookMsg', 'Connected for this session. Try registering and checking now.', 'ok');
-      else showMsg('hookMsg', 'Paste at least one webhook link first.', 'error');
-    });
-    $('clearHooks').addEventListener('click', function () {
-      WEBHOOK_REGISTER_URL = ''; WEBHOOK_CHECK_URL = '';
-      $('setRegister').value = ''; $('setCheck').value = '';
-      refreshMode();
-      showMsg('hookMsg', 'Back to demo mode.', 'ok');
-    });
-    $('downloadBtn').addEventListener('click', function () {
-      var html = '<!doctype html>\n' + document.documentElement.outerHTML;
-      var reg = $('setRegister').value.trim() || WEBHOOK_REGISTER_URL;
-      var chk = $('setCheck').value.trim() || WEBHOOK_CHECK_URL;
-      html = html.replace(/var WEBHOOK_REGISTER_URL = "[^"]*";/, 'var WEBHOOK_REGISTER_URL = "' + reg + '";');
-      html = html.replace(/var WEBHOOK_CHECK_URL = "[^"]*";/, 'var WEBHOOK_CHECK_URL = "' + chk + '";');
-      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'index.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-    });
-    refreshMode();
   </script>
 </body>
 </html>
