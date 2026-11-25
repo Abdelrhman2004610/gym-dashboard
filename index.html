@@ -1,726 +1,384 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href="data:," />
-    <title>لوحة تحكم الجيم — نسخة الاستضافة</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet" />
-    <style>
-      :root{
-        color-scheme: light dark;
-        --bg:#f3f4f0;
-        --surface:#ffffff;
-        --surface-2:#eceee7;
-        --ink:#171a1f;
-        --muted:#5b636e;
-        --line:#d9dcd2;
-        --accent:#4d7c0f;
-        --accent-ink:#ffffff;
-        --accent-soft:#eef6da;
-        --dark:#171a1f;
-        --danger:#b3261e;
-        --danger-soft:#fbeae8;
-        --ok:#2e7d32;
-        --ok-soft:#e6f3e6;
-        --warn:#9a6a00;
-        --warn-soft:#fdf3d7;
-        --radius:14px;
-      }
-      @media (prefers-color-scheme: dark){
-        :root{
-          --bg:#0f1114;
-          --surface:#171a20;
-          --surface-2:#1f232b;
-          --ink:#f1f3ec;
-          --muted:#a7aeb8;
-          --line:#2c313a;
-          --accent:#bef264;
-          --accent-ink:#1a2005;
-          --accent-soft:#26320f;
-          --dark:#bef264;
-          --danger:#ff9d94;
-          --danger-soft:#3d1d1a;
-          --ok:#9ccc9e;
-          --ok-soft:#1d3320;
-          --warn:#ffd97a;
-          --warn-soft:#38300f;
-        }
-      }
-      *{box-sizing:border-box}
-      html{scroll-behavior:smooth}
-      body{
-        margin:0;background:var(--bg);color:var(--ink);
-        font-family:"Cairo",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
-        line-height:1.65;
-      }
-      button,[role="button"],select,summary,input:not([type="checkbox"],[type="radio"]),textarea{min-height:44px}
-      .wrap{max-width:1060px;margin:0 auto;padding:20px 16px 56px}
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gym Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background: #f4f5f1; color: #1a1d21; line-height: 1.6; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 30px; margin: 0 0 4px; }
+    .subtitle { color: #5b636e; margin: 0 0 20px; }
+    .status { background: #fff8e1; border: 1px solid #f0d48a; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-weight: 600; }
+    .status.connected { background: #e6f3e6; border-color: #9ccc9e; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab { flex: 1; padding: 12px; font: inherit; font-weight: 700; font-size: 16px; background: #fff; border: 1.5px solid #d9dcd2; border-radius: 10px; cursor: pointer; }
+    .tab.active { background: #1a1d21; color: #fff; border-color: #1a1d21; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .card { background: #fff; border: 1px solid #d9dcd2; border-radius: 14px; padding: 22px; }
+    .card h2 { margin: 0 0 4px; font-size: 22px; }
+    .card p { color: #5b636e; margin: 0 0 18px; }
+    label { display: block; font-weight: 700; margin: 14px 0 6px; }
+    label .req { color: #b3261e; }
+    input, select { width: 100%; font: inherit; padding: 11px 12px; border: 1.5px solid #d9dcd2; border-radius: 10px; background: #fff; }
+    input:focus, select:focus { outline: 2px solid #4d7c0f; border-color: #4d7c0f; }
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (max-width: 560px) { .plans { grid-template-columns: repeat(2, 1fr); } }
+    .plan { display: block; cursor: pointer; }
+    .plan input { position: absolute; opacity: 0; }
+    .plan span { display: block; text-align: center; border: 1.5px solid #d9dcd2; border-radius: 10px; padding: 12px 6px; font-weight: 700; background: #f8f9f5; }
+    .plan small { display: block; color: #5b636e; font-weight: 400; }
+    .plan input:checked + span { border-color: #4d7c0f; background: #eef6da; }
+    .preview { margin-top: 14px; background: #eef6da; border-radius: 10px; padding: 10px 14px; font-weight: 700; display: none; }
+    .preview.show { display: block; }
+    .btn { font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 12px 24px; cursor: pointer; background: #4d7c0f; color: #fff; margin-top: 20px; }
+    .btn.secondary { background: #1a1d21; }
+    .btn.ghost { background: transparent; color: #1a1d21; border: 1.5px solid #d9dcd2; }
+    .msg { margin-top: 16px; border-radius: 10px; padding: 14px; font-weight: 700; display: none; }
+    .msg.show { display: block; }
+    .msg.error { background: #fbeae8; color: #b3261e; }
+    .msg.ok { background: #e6f3e6; color: #2e7d32; }
+    .member-id { font-size: 36px; font-weight: 800; text-align: center; letter-spacing: 1px; margin: 8px 0; }
+    .center { text-align: center; }
+    .result { margin-top: 18px; border-radius: 10px; padding: 20px; text-align: center; display: none; }
+    .result.show { display: block; }
+    .result h3 { margin: 0 0 4px; font-size: 24px; }
+    .result p { margin: 4px 0; }
+    .result.ok { background: #e6f3e6; }
+    .result.expired { background: #fbeae8; }
+    .result.notfound { background: #eceee7; }
+    .check-row { display: flex; gap: 10px; }
+    .check-row input { flex: 1; font-size: 20px; font-weight: 700; text-align: center; }
+    .check-row .btn { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 15px; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #d9dcd2; }
+    th { color: #5b636e; }
+    .empty { color: #5b636e; text-align: center; border: 1.5px dashed #d9dcd2; border-radius: 10px; padding: 14px; margin-top: 20px; }
+    hr { border: 0; border-top: 1px solid #d9dcd2; margin: 24px 0; }
+    .small { font-size: 14px; color: #5b636e; }
+    footer { margin-top: 32px; text-align: center; color: #5b636e; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Gym Dashboard</h1>
+    <p class="subtitle">Register a new member, or check a membership.</p>
 
-      /* ---------- Top intro ---------- */
-      .intro{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
-      .intro h1{font-size:clamp(26px,4.5vw,38px);font-weight:900;line-height:1.25;margin:0 0 6px}
-      .intro p{margin:0;color:var(--muted);max-width:56ch;font-size:16px}
-      .intro-actions{display:flex;flex-wrap:wrap;gap:10px}
-      .btn{
-        appearance:none;border:0;cursor:pointer;font:inherit;font-weight:800;
-        border-radius:12px;padding:10px 20px;display:inline-flex;align-items:center;gap:8px;
-        transition:transform .12s ease, opacity .12s ease;text-decoration:none;
-      }
-      .btn:active{transform:scale(.98)}
-      .btn-primary{background:var(--accent);color:var(--accent-ink)}
-      .btn-dark{background:var(--dark);color:var(--bg)}
-      @media (prefers-color-scheme: dark){ .btn-dark{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)} }
-      .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
-      .btn:disabled{opacity:.55;cursor:wait}
+    <div class="status" id="modeBox">Demo mode — not connected to n8n yet. Register below to try it, or connect it in the Connect tab.</div>
 
-      .statusbar{
-        display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
-        background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-        padding:12px 16px;margin:16px 0 20px;
-      }
-      .pill{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;border-radius:999px;padding:5px 14px;background:var(--warn-soft);color:var(--warn)}
-      .pill.on{background:var(--ok-soft);color:var(--ok)}
-      .pill .dot{width:9px;height:9px;border-radius:50%;background:currentColor}
-      .statusbar .hint{color:var(--muted);font-size:14px}
+    <nav class="tabs">
+      <button class="tab active" data-tab="register" type="button">Register Member</button>
+      <button class="tab" data-tab="check" type="button">Check Membership</button>
+      <button class="tab" data-tab="connect" type="button">Connect</button>
+    </nav>
 
-      /* ---------- Tabs ---------- */
-      .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-      .tab{
-        flex:1 1 150px;background:var(--surface);color:var(--muted);border:1.5px solid var(--line);
-        border-radius:12px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;padding:12px 10px;
-      }
-      .tab[aria-selected="true"]{background:var(--dark);color:var(--bg);border-color:var(--dark)}
-      @media (prefers-color-scheme: dark){ .tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)} }
-      .panel{display:none}
-      .panel.active{display:block}
-
-      .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
-      .card h2{margin:0 0 4px;font-size:22px;font-weight:900}
-      .card .sub{margin:0 0 18px;color:var(--muted);font-size:15px}
-
-      /* ---------- Form ---------- */
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-      @media (max-width:640px){ .grid{grid-template-columns:1fr} }
-      .field{display:flex;flex-direction:column;gap:6px}
-      .field.full{grid-column:1/-1}
-      label{font-weight:700;font-size:15px}
-      label .req{color:var(--danger)}
-      input,select,textarea{
-        font:inherit;color:var(--ink);background:var(--bg);
-        border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;
-      }
-      input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
-      .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-      .plan{position:relative;display:block;cursor:pointer}
-      .plan input{
-        position:absolute;top:10px;inset-inline-start:10px;width:22px;height:22px;min-height:22px;
-        margin:0;accent-color:var(--accent);cursor:pointer;z-index:1;
-      }
-      .plan .box{
-        display:block;border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center;height:100%;
-        background:var(--bg);
-      }
-      .plan .box b{display:block;font-size:16px}
-      .plan .box span{color:var(--muted);font-size:13.5px}
-      .plan input:checked + .box{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1.5px var(--accent)}
-      .plan input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
-      .preview{
-        margin-top:14px;background:var(--accent-soft);border-radius:12px;padding:12px 16px;
-        font-weight:700;display:none;
-      }
-      .preview.show{display:block}
-      .form-actions{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
-      .msg{margin-top:16px;border-radius:12px;padding:14px 16px;display:none;font-weight:700}
-      .msg.show{display:block}
-      .msg.err{background:var(--danger-soft);color:var(--danger)}
-      .msg.good{background:var(--ok-soft);color:var(--ok)}
-      .success-id{
-        font-family:"IBM Plex Mono",monospace;font-size:clamp(30px,6vw,44px);font-weight:700;
-        letter-spacing:1px;direction:ltr;text-align:center;margin:6px 0;
-      }
-      .success-details{text-align:center;color:var(--muted)}
-      .success-details b{color:var(--ink)}
-
-      /* ---------- Check ---------- */
-      .check-row{display:flex;gap:10px;flex-wrap:wrap}
-      .check-row input{flex:1 1 220px;font-size:20px;font-weight:700;text-align:center;letter-spacing:1px}
-      .check-row .btn{flex:0 0 auto;font-size:17px;padding-inline:28px}
-      .result{margin-top:18px;border-radius:12px;padding:20px;display:none;text-align:center}
-      .result.show{display:block}
-      .result .rname{font-size:26px;font-weight:900;margin:0 0 2px}
-      .result .rmsg{font-size:18px;font-weight:800;margin:0}
-      .result .rdet{color:var(--muted);margin:8px 0 0}
-      .result .rdet b{color:var(--ink)}
-      .result.ok{background:var(--ok-soft)} .result.ok .rmsg{color:var(--ok)}
-      .result.exp{background:var(--danger-soft)} .result.exp .rmsg{color:var(--danger)}
-      .result.frz{background:var(--warn-soft)} .result.frz .rmsg{color:var(--warn)}
-      .result.nf{background:var(--surface-2)} .result.nf .rmsg{color:var(--muted)}
-      .demo-note{font-size:13.5px;color:var(--muted);margin-top:14px}
-      .demo-note code{font-family:"IBM Plex Mono",monospace;background:var(--surface-2);padding:1px 7px;border-radius:6px;direction:ltr;display:inline-block}
-
-      /* ---------- Session list ---------- */
-      .session{margin-top:22px}
-      .session h3{margin:0 0 10px;font-size:18px;font-weight:900}
-      .session table{width:100%;border-collapse:collapse;font-size:15px}
-      .session th,.session td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
-      .session th{color:var(--muted);font-weight:700}
-      .session .mono{font-family:"IBM Plex Mono",monospace;direction:ltr;text-align:left}
-      .empty{color:var(--muted);border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center}
-      @media (max-width:640px){
-        .session table,.session tbody,.session tr,.session td{display:block;width:100%}
-        .session thead{display:none}
-        .session tr{border:1px solid var(--line);border-radius:12px;padding:8px 6px;margin-bottom:10px}
-        .session td{border:0;padding:4px 10px}
-        .session .mono{text-align:right}
-      }
-
-      /* ---------- Hosting guide ---------- */
-      .steps{counter-reset:step;display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
-      .steps li{display:flex;gap:14px;align-items:flex-start}
-      .steps .num{
-        counter-increment:step;flex:0 0 38px;width:38px;height:38px;border-radius:50%;
-        background:var(--dark);color:var(--bg);display:flex;align-items:center;justify-content:center;
-        font-weight:900;font-size:17px;
-      }
-      @media (prefers-color-scheme: dark){ .steps .num{background:var(--accent);color:var(--accent-ink)} }
-      .steps li::before{content:none}
-      .steps b{display:block;font-size:16.5px}
-      .steps p{margin:2px 0 0;color:var(--muted);font-size:15px}
-      code.snip{
-        display:block;direction:ltr;text-align:left;font-family:"IBM Plex Mono",monospace;font-size:13.5px;
-        background:var(--dark);color:#e8f5c8;border-radius:12px;padding:16px;overflow-x:auto;white-space:pre;line-height:1.7;
-      }
-      @media (prefers-color-scheme: dark){ code.snip{background:#0b0d10;border:1px solid var(--line)} }
-      .hosts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:6px}
-      .host{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
-      .host b{display:block;margin-bottom:2px}
-      .host span{color:var(--muted);font-size:14px}
-      .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-      @media (max-width:640px){ .settings-grid{grid-template-columns:1fr} }
-      .settings-grid input{direction:ltr;text-align:left;font-size:14px}
-      .divider{border:0;border-top:1px solid var(--line);margin:26px 0}
-      footer{margin-top:34px;color:var(--muted);font-size:14px;text-align:center}
-      @media (prefers-reduced-motion: reduce){ *{transition:none !important;scroll-behavior:auto !important} }
-    </style>
-  </head>
-  <body>
-    <main class="wrap">
-
-      <div class="intro">
-        <div>
-          <h1>لوحة تحكم الجيم</h1>
-          <p>نسخة Static في ملف واحد <b>index.html</b> — ارفعها على أي استضافة واستخدم اللينك بتاعها على طول. فيها صفحتين: تسجيل عضو جديد، والتحقق من حالة العضوية.</p>
-        </div>
-        <div class="intro-actions">
-          <button class="btn btn-primary" id="downloadTop" type="button">⬇ تنزيل ملف index.html</button>
-        </div>
+    <section class="panel active" id="panel-register">
+      <div class="card">
+        <h2>Register a new member</h2>
+        <p>Fill in the details and press Register. The member gets an ID and an end date automatically.</p>
+        <form id="regForm" novalidate>
+          <label for="fName">Full name <span class="req">*</span></label>
+          <input id="fName" type="text" placeholder="e.g. Ahmed Mohamed Ali" required />
+          <label for="fPhone">Phone number <span class="req">*</span></label>
+          <input id="fPhone" type="tel" placeholder="01xxxxxxxxx" required />
+          <label for="fBirth">Date of birth</label>
+          <input id="fBirth" type="date" />
+          <label for="fGoal">Goal</label>
+          <select id="fGoal">
+            <option value="">— Select —</option>
+            <option>Lose weight</option>
+            <option>Build muscle</option>
+            <option>General fitness</option>
+            <option>Strength</option>
+          </select>
+          <label for="fPhoto">Photo link (Google Drive, optional)</label>
+          <input id="fPhoto" type="url" placeholder="Paste the Drive link here" />
+          <label>Plan <span class="req">*</span></label>
+          <div class="plans">
+            <label class="plan"><input type="radio" name="plan" value="Monthly" data-days="30" /><span>Monthly<small>30 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="3 Months" data-days="90" /><span>3 Months<small>90 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="6 Months" data-days="180" /><span>6 Months<small>180 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="Yearly" data-days="365" /><span>Yearly<small>365 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="Student" data-days="30" /><span>Student<small>30 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="PT" data-days="30" /><span>Personal Training<small>30 days + coach</small></span></label>
+          </div>
+          <div id="coachField" style="display:none">
+            <label for="fCoach">Coach <span class="req">*</span></label>
+            <select id="fCoach">
+              <option value="">— Select a coach —</option>
+              <option>Coach Ahmed</option>
+              <option>Coach Mohamed</option>
+              <option>Coach Sara</option>
+              <option>Coach Khaled</option>
+            </select>
+          </div>
+          <label for="fPayMethod">Payment method</label>
+          <select id="fPayMethod">
+            <option>Cash</option>
+            <option>InstaPay</option>
+            <option>Vodafone Cash</option>
+            <option>Card</option>
+          </select>
+          <label for="fPaid">Amount paid (EGP)</label>
+          <input id="fPaid" type="number" min="0" placeholder="0" />
+          <div class="preview" id="expiryPreview"></div>
+          <button class="btn" id="regSubmit" type="submit">Register Member</button>
+          <button class="btn ghost" type="reset">Clear</button>
+          <div class="msg" id="regMsg"></div>
+        </form>
+        <h3 style="margin-top:28px">Registered in this session</h3>
+        <div id="sessionEmpty" class="empty">No members registered yet in this session.</div>
+        <table id="sessionTable" style="display:none">
+          <thead><tr><th>Member ID</th><th>Name</th><th>Plan</th><th>Ends</th></tr></thead>
+          <tbody id="sessionBody"></tbody>
+        </table>
       </div>
+    </section>
 
-      <div class="statusbar">
-        <span class="pill" id="modePill"><span class="dot"></span><span id="modeText">وضع تجريبي — مش متصلة بـ n8n لسه</span></span>
-        <span class="hint">اربطها من قسم «إعدادات الربط» تحت عشان التسجيل والتحقق يوصلوا لشيت Gym System.</span>
+    <section class="panel" id="panel-check">
+      <div class="card">
+        <h2>Check membership</h2>
+        <p>Enter the member ID to see the member's name and membership status.</p>
+        <form id="checkForm" novalidate>
+          <div class="check-row">
+            <input id="checkId" type="text" placeholder="G-123456" autocomplete="off" aria-label="Member ID" />
+            <button class="btn" id="checkSubmit" type="submit">Check</button>
+          </div>
+        </form>
+        <div class="result" id="checkResult"></div>
+        <p class="small" id="demoNote">In demo mode you can only check members registered in this session. Connect n8n to check real members from the sheet.</p>
       </div>
+    </section>
 
-      <nav class="tabs" role="tablist" aria-label="أقسام اللوحة">
-        <button class="tab" role="tab" id="tab-register" aria-selected="true" aria-controls="panel-register" data-tab="register" type="button">تسجيل عضو جديد</button>
-        <button class="tab" role="tab" id="tab-check" aria-selected="false" aria-controls="panel-check" data-tab="check" type="button">التحقق من عضوية</button>
-        <button class="tab" role="tab" id="tab-host" aria-selected="false" aria-controls="panel-host" data-tab="host" type="button">الرفع على الاستضافة والربط</button>
-      </nav>
+    <section class="panel" id="panel-connect">
+      <div class="card">
+        <h2>Connect to n8n</h2>
+        <p>Paste the Production Webhook URLs from your n8n workflows, then press Connect. After that, registrations and checks go to your Google Sheet.</p>
+        <label for="setRegister">Register webhook (gym-register)</label>
+        <input id="setRegister" type="url" placeholder="https://your-n8n.com/webhook/gym-register" />
+        <label for="setCheck">Check webhook (gym-check)</label>
+        <input id="setCheck" type="url" placeholder="https://your-n8n.com/webhook/gym-check" />
+        <button class="btn secondary" id="applyHooks" type="button">Connect</button>
+        <button class="btn ghost" id="clearHooks" type="button">Back to demo mode</button>
+        <div class="msg" id="hookMsg"></div>
+        <hr />
+        <p class="small">To make the connection permanent, open this file in a text editor and set these two lines near the bottom of the file, then upload it again:</p>
+        <p class="small"><code>WEBHOOK_REGISTER_URL = "https://your-n8n.com/webhook/gym-register";</code><br />
+        <code>WEBHOOK_CHECK_URL = "https://your-n8n.com/webhook/gym-check";</code></p>
+        <button class="btn ghost" id="downloadBtn" type="button">Download this file (index.html)</button>
+      </div>
+    </section>
 
-      <!-- ============ PANEL: REGISTER ============ -->
-      <section class="panel active" id="panel-register" role="tabpanel" aria-labelledby="tab-register">
-        <div class="card">
-          <h2>تسجيل عضو جديد</h2>
-          <p class="sub">املى البيانات ودوس تسجيل — العضو هياخد رقم عضوية وتاريخ انتهاء محسوب أوتوماتيك. بعد ربط الـ Webhooks (من تبويب «الرفع على الاستضافة والربط») التسجيل بيروح لشيت Gym System عن طريق n8n؛ وفي الوضع التجريبي التسجيل بيتم جوّه الصفحة دي بس للتجربة ومش بيتحفظ في الشيت.</p>
+    <footer>Members are saved in the Gym System Google Sheet through n8n.</footer>
+  </main>
 
-          <form id="regForm" novalidate>
-            <div class="grid">
-              <div class="field">
-                <label for="fName">الاسم الكامل <span class="req">*</span></label>
-                <input id="fName" name="name" type="text" autocomplete="name" placeholder="مثال: أحمد محمد علي" required />
-              </div>
-              <div class="field">
-                <label for="fPhone">رقم الموبايل <span class="req">*</span></label>
-                <input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" required />
-              </div>
-              <div class="field">
-                <label for="fBirth">تاريخ الميلاد</label>
-                <input id="fBirth" name="birthday" type="date" />
-              </div>
-              <div class="field">
-                <label for="fGender">النوع</label>
-                <select id="fGender" name="gender">
-                  <option value="">— اختر —</option>
-                  <option>ذكر</option>
-                  <option>أنثى</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="fGoal">الهدف</label>
-                <select id="fGoal" name="goal">
-                  <option value="">— اختر —</option>
-                  <option>تخسيس</option>
-                  <option>تضخيم</option>
-                  <option>لياقة عامة</option>
-                  <option>قوة</option>
-                  <option>تأهيل / إصابة</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="fEmergency">رقم للطوارئ</label>
-                <input id="fEmergency" name="emergency" type="tel" inputmode="tel" placeholder="01xxxxxxxxx" />
-              </div>
-              <div class="field">
-                <label for="fHeight">الطول (سم)</label>
-                <input id="fHeight" name="height" type="number" inputmode="numeric" min="100" max="250" placeholder="175" />
-              </div>
-              <div class="field">
-                <label for="fWeight">الوزن (كجم)</label>
-                <input id="fWeight" name="weight" type="number" inputmode="numeric" min="30" max="300" placeholder="80" />
-              </div>
-              <div class="field full">
-                <label for="fHealth">أمراض أو إصابات (لو فيه)</label>
-                <input id="fHealth" name="health" type="text" placeholder="مثال: ضغط، إصابة ركبة… أو سيبها فاضية" />
-              </div>
-              <div class="field full">
-                <label for="fPhoto">رابط الصورة الشخصية (Google Drive)</label>
-                <input id="fPhoto" name="photo" type="url" placeholder="ارفع الصورة على Drive والصق اللينك هنا — وبيتحفظ في ملف العضو في الشيت" />
-              </div>
-            </div>
-
-            <div class="field full" style="margin-top:18px">
-              <label>الباقة <span class="req">*</span></label>
-              <div class="plans" id="plans">
-                <label class="plan"><input type="radio" name="plan" value="شهري" data-days="30" /><span class="box"><b>شهري</b><span>30 يوم</span></span></label>
-                <label class="plan"><input type="radio" name="plan" value="3 شهور" data-days="90" /><span class="box"><b>3 شهور</b><span>90 يوم</span></span></label>
-                <label class="plan"><input type="radio" name="plan" value="6 شهور" data-days="180" /><span class="box"><b>6 شهور</b><span>180 يوم</span></span></label>
-                <label class="plan"><input type="radio" name="plan" value="سنوي" data-days="365" /><span class="box"><b>سنوي</b><span>365 يوم</span></span></label>
-                <label class="plan"><input type="radio" name="plan" value="طالب" data-days="30" /><span class="box"><b>طالب</b><span>30 يوم</span></span></label>
-                <label class="plan"><input type="radio" name="plan" value="PT" data-days="30" /><span class="box"><b>Personal Training</b><span>30 يوم + مدرب</span></span></label>
-              </div>
-            </div>
-
-            <div class="grid" style="margin-top:14px">
-              <div class="field" id="coachField" style="display:none">
-                <label for="fCoach">المدرب <span class="req">*</span></label>
-                <select id="fCoach" name="coach">
-                  <option value="">— اختر المدرب —</option>
-                  <option>كابتن أحمد</option>
-                  <option>كابتن محمد</option>
-                  <option>كابتن سارة</option>
-                  <option>كابتن خالد</option>
-                </select>
-              </div>
-              <div class="field" id="sessionsField" style="display:none">
-                <label for="fSessions">عدد جلسات الـ PT</label>
-                <input id="fSessions" name="sessions" type="number" inputmode="numeric" min="1" max="60" value="12" />
-              </div>
-              <div class="field">
-                <label for="fPayMethod">طريقة الدفع</label>
-                <select id="fPayMethod" name="payMethod">
-                  <option>كاش</option>
-                  <option>InstaPay</option>
-                  <option>Vodafone Cash</option>
-                  <option>فيزا</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="fPaid">المبلغ المدفوع (جنيه)</label>
-                <input id="fPaid" name="paid" type="number" inputmode="numeric" min="0" placeholder="0" />
-              </div>
-            </div>
-
-            <div class="preview" id="expiryPreview"></div>
-
-            <div class="form-actions">
-              <button class="btn btn-primary" id="regSubmit" type="submit" style="font-size:17px;padding-inline:34px">تسجيل العضو</button>
-              <button class="btn btn-ghost" type="reset">مسح الحقول</button>
-            </div>
-
-            <div class="msg" id="regMsg" role="status"></div>
-          </form>
-
-          <div class="session">
-            <h3>اتسجلوا في الجلسة دي</h3>
-            <div id="sessionEmpty" class="empty">لسه مفيش تسجيلات في الجلسة دي — أول عضو هتسجله هيظهر هنا.</div>
-            <table id="sessionTable" style="display:none">
-              <thead><tr><th>رقم العضوية</th><th>الاسم</th><th>الباقة</th><th>تاريخ الانتهاء</th></tr></thead>
-              <tbody id="sessionBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ PANEL: CHECK ============ -->
-      <section class="panel" id="panel-check" role="tabpanel" aria-labelledby="tab-check">
-        <div class="card">
-          <h2>التحقق من عضوية</h2>
-          <p class="sub">اكتب رقم العضوية بتاع العضو ودوس تحقق — هيظهر اسمه وحالة اشتراكه على طول.</p>
-
-          <form id="checkForm" novalidate>
-            <div class="check-row">
-              <input id="checkId" type="text" placeholder="G-123456" autocomplete="off" dir="ltr" aria-label="رقم العضوية" />
-              <button class="btn btn-primary" id="checkSubmit" type="submit">تحقق</button>
-            </div>
-          </form>
-
-          <div class="result" id="checkResult" role="status"></div>
-
-          <p class="demo-note" id="demoNote">للتجربة في الوضع التجريبي جرّب: <code>G-100001</code> (اشتراك ساري) أو <code>G-100002</code> (اشتراك منتهي) — دي أمثلة تجريبية بس، مش أعضاء حقيقيين.</p>
-        </div>
-      </section>
-
-      <!-- ============ PANEL: HOSTING ============ -->
-      <section class="panel" id="panel-host" role="tabpanel" aria-labelledby="tab-host">
-        <div class="card">
-          <h2>إزاي تاخد الكود وتحطه على استضافة</h2>
-          <p class="sub">الصفحة دي كلها ملف واحد. نفّذ الخطوات دي وهتشتغل بلينك خاص بيك.</p>
-
-          <ol class="steps">
-            <li><span class="num">1</span><div><b>نزّل الملف</b><p>دوس زرار التنزيل وهينزل عندك ملف <b>index.html</b> — هو ده الكود كله (HTML + CSS + JavaScript في ملف واحد، من غير أي ملفات تانية).</p>
-              <p style="margin-top:10px"><button class="btn btn-primary" id="downloadHost" type="button">⬇ تنزيل ملف index.html</button></p></div></li>
-            <li><span class="num">2</span><div><b>اربطه بـ n8n (اختياري بس هو اللي بيوصّل بالشيت)</b><p>افتح الملف بأي محرر نصوص، ودور على السطرين دول في آخر الملف وعدّل اللينكات بلينكات الـ Webhooks بتاعة الـ Workflows عندك (<b>gym-register</b> و <b>gym-check</b>)، وبعدين احفظ:</p>
-              <code class="snip">var WEBHOOK_REGISTER_URL = "https://your-n8n.com/webhook/gym-register";
-var WEBHOOK_CHECK_URL    = "https://your-n8n.com/webhook/gym-check";</code>
-              <p>من غير الخطوة دي الصفحة هتشتغل في الوضع التجريبي: التسجيل والتحقق بيتموا جواها بس ومش بيوصلوا للشيت.</p></div></li>
-            <li><span class="num">3</span><div><b>ارفع الملف على الاستضافة</b><p>ارفع <b>index.html</b> زي ما هو، وهتاخد لينك جاهز للمشاركة والاستخدام من أي موبايل أو كمبيوتر:</p>
-              <div class="hosts">
-                <div class="host"><b>Netlify Drop</b><span>اسحب المجلد اللي فيه الملف على netlify.com/drop وهيطلع لك لينك فورًا — مجاني ومن غير حساب معقّد.</span></div>
-                <div class="host"><b>Vercel</b><span>ارفع الملف من لوحة Vercel أو اربطه بـ GitHub، وهيطلع لينك دائم.</span></div>
-                <div class="host"><b>GitHub Pages</b><span>حط الملف في Repository وفعّل Pages من الإعدادات.</span></div>
-                <div class="host"><b>أي استضافة عادية (cPanel)</b><span>ارفع الملف في مجلد public_html وهيشتغل على الدومين بتاعك.</span></div>
-              </div></div></li>
-            <li><span class="num">4</span><div><b>استخدم اللينك</b><p>افتح اللينك من أي جهاز: صفحة التسجيل لموظف الاستقبال، وصفحة التحقق عند الباب. أي تعديل بعد كده = عدّل الملف وارفعه تاني مكان القديم.</p></div></li>
-          </ol>
-
-          <hr class="divider" />
-
-          <h2 style="font-size:20px">إعدادات الربط — للتجربة هنا قبل الرفع</h2>
-          <p class="sub">الصق لينكات الـ Webhooks هنا ودوس «تفعيل الربط» عشان تجرّب التسجيل والتحقق الحقيقي على الشيت من الصفحة دي. الإعدادات دي شغالة في الجلسة دي بس؛ النسخة اللي هترفعها بتتظبط من الكود زي خطوة 2.</p>
-          <div class="settings-grid">
-            <div class="field">
-              <label for="setRegister">Webhook التسجيل (gym-register)</label>
-              <input id="setRegister" type="url" placeholder="https://your-n8n.com/webhook/gym-register" />
-            </div>
-            <div class="field">
-              <label for="setCheck">Webhook التحقق (gym-check)</label>
-              <input id="setCheck" type="url" placeholder="https://your-n8n.com/webhook/gym-check" />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn btn-dark" id="applyHooks" type="button">تفعيل الربط</button>
-            <button class="btn btn-ghost" id="clearHooks" type="button">رجوع للوضع التجريبي</button>
-          </div>
-          <div class="msg" id="hookMsg" role="status"></div>
-        </div>
-      </section>
-
-      <footer>ملف واحد مستقل — التعديلات على الباقات والمدربين والأسعار بتتعمل من الكود مباشرة، وبيانات الأعضاء بتتخزن في Google Sheet عن طريق n8n.</footer>
-    </main>
-
-    <script>
-      /* ============================================================
-         إعدادات الربط — عدّل السطرين دول بلينكات n8n بتاعتك
-         قبل ما ترفع الملف على الاستضافة:
-         ============================================================ */
-      var WEBHOOK_REGISTER_URL = "";
-      var WEBHOOK_CHECK_URL = "";
-
-      /* ---------- Helpers ---------- */
-      function $(id){ return document.getElementById(id); }
-      function fmtDate(d){
-        return d.toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' });
+  <script>
+    var WEBHOOK_REGISTER_URL = "";
+    var WEBHOOK_CHECK_URL = "";
+    function $(id) { return document.getElementById(id); }
+    function fmtDate(d) { return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }); }
+    function addDays(date, days) { var d = new Date(date); d.setDate(d.getDate() + days); return d; }
+    function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+    function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+    var members = [];
+    function findMember(id) {
+      id = (id || '').trim().toUpperCase();
+      for (var i = 0; i < members.length; i++) if (members[i].id.toUpperCase() === id) return members[i];
+      return null;
+    }
+    function memberState(m) {
+      if (m.status === 'Cancelled') return 'cancelled';
+      if (m.status === 'Frozen') return 'frozen';
+      if (today() > m.end) return 'expired';
+      return 'active';
+    }
+    function refreshMode() {
+      var on = !!(WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL);
+      var box = $('modeBox');
+      box.classList.toggle('connected', on);
+      box.textContent = on ? 'Connected to n8n — registrations and checks go to the sheet.' : 'Demo mode — not connected to n8n yet. Register below to try it, or connect it in the Connect tab.';
+      $('demoNote').style.display = on ? 'none' : '';
+    }
+    document.querySelectorAll('.tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+        $('panel-' + tab.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+    var planRadios = document.querySelectorAll('input[name="plan"]');
+    function selectedPlan() {
+      for (var i = 0; i < planRadios.length; i++) if (planRadios[i].checked) return planRadios[i];
+      return null;
+    }
+    function onPlanChange() {
+      var p = selectedPlan();
+      $('coachField').style.display = (p && p.value === 'PT') ? '' : 'none';
+      var prev = $('expiryPreview');
+      if (p) {
+        var days = parseInt(p.getAttribute('data-days'), 10);
+        prev.innerHTML = 'Starts today, ' + fmtDate(today()) + ', and ends ' + fmtDate(addDays(today(), days)) + ' (' + days + ' days).';
+        prev.classList.add('show');
+      } else { prev.classList.remove('show'); }
+    }
+    planRadios.forEach(function (r) { r.addEventListener('change', onPlanChange); });
+    function showMsg(id, text, kind) {
+      var el = $(id);
+      el.textContent = text;
+      el.className = 'msg' + (text ? ' show ' + kind : '');
+    }
+    function genId() {
+      var n;
+      do { n = 'G-' + Math.floor(100000 + Math.random() * 900000); } while (findMember(n));
+      return n;
+    }
+    function addSessionRow(m) {
+      $('sessionEmpty').style.display = 'none';
+      $('sessionTable').style.display = '';
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td></td><td></td><td></td><td></td>';
+      tr.children[0].textContent = m.id;
+      tr.children[1].textContent = m.name;
+      tr.children[2].textContent = m.plan;
+      tr.children[3].textContent = fmtDate(m.end);
+      $('sessionBody').prepend(tr);
+    }
+    $('regForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var name = $('fName').value.trim();
+      var phone = $('fPhone').value.trim().replace(/[\s-]/g, '');
+      var plan = selectedPlan();
+      if (!name) { showMsg('regMsg', 'Please enter the member name.', 'error'); $('fName').focus(); return; }
+      if (!/^01[0-9]{9}$/.test(phone)) { showMsg('regMsg', 'Phone number must be 11 digits and start with 01.', 'error'); $('fPhone').focus(); return; }
+      if (!plan) { showMsg('regMsg', 'Please choose a plan.', 'error'); return; }
+      var isPT = plan.value === 'PT';
+      var coach = $('fCoach').value;
+      if (isPT && !coach) { showMsg('regMsg', 'Personal Training needs a coach.', 'error'); $('fCoach').focus(); return; }
+      var days = parseInt(plan.getAttribute('data-days'), 10);
+      var start = today();
+      var end = addDays(start, days);
+      var payload = {
+        name: name, phone: phone, birthday: $('fBirth').value || '',
+        goal: $('fGoal').value, photo: $('fPhoto').value.trim(),
+        plan: plan.value, coach: isPT ? coach : '',
+        sessions: isPT ? '12' : '',
+        payMethod: $('fPayMethod').value, paid: $('fPaid').value || '0',
+        startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10)
+      };
+      var btn = $('regSubmit');
+      btn.disabled = true; btn.textContent = 'Registering…';
+      function done(id, viaSheet) {
+        var m = { id: id, name: name, plan: plan.value, status: 'Active', start: start, end: end };
+        members.push(m);
+        addSessionRow(m);
+        var el = $('regMsg');
+        el.className = 'msg show ok';
+        el.innerHTML = (viaSheet ? 'Registered in the sheet.' : 'Registered in demo mode — this is only in this session, not in the sheet. Connect n8n to save it for real.') + '<div class="member-id"></div><div class="center"></div>';
+        el.querySelector('.member-id').textContent = id;
+        el.querySelector('.center').textContent = name + ' — ' + plan.value + ' — ends ' + fmtDate(end) + (isPT ? ' — Coach: ' + coach : '');
+        btn.disabled = false; btn.textContent = 'Register Member';
+        $('regForm').reset();
+        onPlanChange();
       }
-      function addDays(date, days){ var d = new Date(date); d.setDate(d.getDate() + days); return d; }
-      function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
-      function today(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
-
-      /* ---------- In-memory members (demo + this session) ---------- */
-      var members = [];
-      (function seedDemo(){
-        var t = today();
-        members.push({ id:'G-100001', name:'عضو تجريبي — ساري', plan:'3 شهور', status:'Active',
-          start: addDays(t,-72), end: addDays(t,18), demo:true });
-        members.push({ id:'G-100002', name:'عضو تجريبي — منتهي', plan:'شهري', status:'Active',
-          start: addDays(t,-35), end: addDays(t,-5), demo:true });
-      })();
-
-      function findMember(id){
-        id = (id || '').trim().toUpperCase();
-        for (var i = 0; i < members.length; i++){
-          if (members[i].id.toUpperCase() === id) return members[i];
-        }
-        return null;
+      function fail(text) { showMsg('regMsg', text, 'error'); btn.disabled = false; btn.textContent = 'Register Member'; }
+      if (WEBHOOK_REGISTER_URL) {
+        fetch(WEBHOOK_REGISTER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (res) { if (!res.ok) throw new Error('bad'); return res.json().catch(function () { return {}; }); })
+          .then(function (data) { done((data && (data.id || data.memberId)) || genId(), true); })
+          .catch(function () { fail('Could not reach n8n. Check that the workflow is active and the link is correct, then try again.'); });
+      } else {
+        setTimeout(function () { done(genId(), false); }, 300);
       }
-      function memberState(m){
-        if (m.status === 'Cancelled') return 'cancelled';
-        if (m.status === 'Frozen') return 'frozen';
-        if (today() > m.end) return 'expired';
-        return 'active';
+    });
+    $('regForm').addEventListener('reset', function () {
+      setTimeout(function () { $('coachField').style.display = 'none'; $('expiryPreview').classList.remove('show'); showMsg('regMsg', '', ''); }, 0);
+    });
+    function renderResult(kind, name, msg, det) {
+      var el = $('checkResult');
+      el.className = 'result show ' + kind;
+      el.innerHTML = (name ? '<h3></h3>' : '') + '<p><b></b></p>' + (det ? '<p></p>' : '');
+      if (name) el.querySelector('h3').textContent = name;
+      el.querySelector('b').textContent = msg;
+      if (det) el.querySelectorAll('p')[1].textContent = det;
+    }
+    function renderFromMember(m) {
+      var state = memberState(m);
+      if (state === 'active') {
+        renderResult('ok', m.name, 'Active — welcome to the gym', m.plan + ' — ' + daysBetween(today(), m.end) + ' days left — ends ' + fmtDate(m.end));
+      } else if (state === 'expired') {
+        renderResult('expired', m.name, 'Expired — please renew before entry', m.plan + ' — ended on ' + fmtDate(m.end));
+      } else if (state === 'frozen') {
+        renderResult('notfound', m.name, 'Frozen — please contact the gym', m.plan + ' — ends ' + fmtDate(m.end));
+      } else {
+        renderResult('expired', m.name, 'Cancelled', 'Please contact the gym to reactivate.');
       }
-
-      /* ---------- Mode pill ---------- */
-      function refreshMode(){
-        var on = !!(WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL);
-        $('modePill').classList.toggle('on', on);
-        $('modeText').textContent = on ? 'متصلة بـ n8n — التسجيل والتحقق بيوصلوا للشيت' : 'وضع تجريبي — مش متصلة بـ n8n لسه';
-        $('demoNote').style.display = on ? 'none' : '';
-      }
-
-      /* ---------- Tabs ---------- */
-      var tabs = document.querySelectorAll('.tab');
-      tabs.forEach(function(tab){
-        tab.addEventListener('click', function(){
-          tabs.forEach(function(t){ t.setAttribute('aria-selected','false'); });
-          tab.setAttribute('aria-selected','true');
-          document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
-          $('panel-' + tab.getAttribute('data-tab')).classList.add('active');
+    }
+    $('checkForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var id = $('checkId').value.trim();
+      if (!id) { renderResult('notfound', '', 'Please enter a member ID first.', ''); return; }
+      var btn = $('checkSubmit');
+      btn.disabled = true; btn.textContent = 'Checking…';
+      function finish() { btn.disabled = false; btn.textContent = 'Check'; }
+      if (WEBHOOK_CHECK_URL) {
+        var url = WEBHOOK_CHECK_URL + (WEBHOOK_CHECK_URL.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id);
+        fetch(url).then(function (res) {
+          if (res.status === 404) throw new Error('nf');
+          if (!res.ok) throw new Error('bad');
+          return res.json();
+        }).then(function (data) {
+          if (!data || !data.found || !data.name) {
+            renderResult('notfound', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
+          } else {
+            renderFromMember({ id: id, name: data.name, plan: data.plan || '—', status: data.status || 'Active', start: data.startDate ? new Date(data.startDate) : today(), end: data.endDate ? new Date(data.endDate) : today() });
+          }
+          finish();
+        }).catch(function (err) {
+          if (err.message === 'nf') renderResult('notfound', '', 'Member ID not found', 'Check the ID and try again, or register the member first.');
+          else renderResult('notfound', '', 'Could not reach n8n', 'Check that the workflow is active and the link is correct, then try again.');
+          finish();
         });
-      });
-
-      /* ---------- Plan / PT fields + expiry preview ---------- */
-      var planRadios = document.querySelectorAll('input[name="plan"]');
-      function selectedPlan(){
-        for (var i = 0; i < planRadios.length; i++) if (planRadios[i].checked) return planRadios[i];
-        return null;
+      } else {
+        setTimeout(function () {
+          var m = findMember(id);
+          if (!m) renderResult('notfound', '', 'Member ID not found', 'In demo mode, only members registered in this session can be checked.');
+          else renderFromMember(m);
+          finish();
+        }, 250);
       }
-      function onPlanChange(){
-        var p = selectedPlan();
-        var isPT = p && p.value === 'PT';
-        $('coachField').style.display = isPT ? '' : 'none';
-        $('sessionsField').style.display = isPT ? '' : 'none';
-        var prev = $('expiryPreview');
-        if (p){
-          var days = parseInt(p.getAttribute('data-days'), 10);
-          var end = addDays(today(), days);
-          prev.innerHTML = 'الاشتراك هيبدأ النهاردة <b>' + fmtDate(today()) + '</b> وينتهي <b>' + fmtDate(end) + '</b> (' + days + ' يوم).';
-          prev.classList.add('show');
-        } else {
-          prev.classList.remove('show');
-        }
-      }
-      planRadios.forEach(function(r){ r.addEventListener('change', onPlanChange); });
-      $('regForm').addEventListener('reset', function(){
-        setTimeout(function(){
-          $('coachField').style.display = 'none';
-          $('sessionsField').style.display = 'none';
-          $('expiryPreview').classList.remove('show');
-          showMsg('regMsg', '', '');
-        }, 0);
-      });
-
-      function showMsg(id, text, kind){
-        var el = $(id);
-        el.textContent = text;
-        el.className = 'msg' + (text ? ' show ' + kind : '');
-      }
-
-      /* ---------- Register ---------- */
-      function genId(){
-        var n;
-        do { n = 'G-' + Math.floor(100000 + Math.random() * 900000); } while (findMember(n));
-        return n;
-      }
-      function addSessionRow(m){
-        $('sessionEmpty').style.display = 'none';
-        $('sessionTable').style.display = '';
-        var tr = document.createElement('tr');
-        tr.innerHTML = '<td class="mono"></td><td></td><td></td><td></td>';
-        tr.children[0].textContent = m.id;
-        tr.children[1].textContent = m.name;
-        tr.children[2].textContent = m.plan;
-        tr.children[3].textContent = fmtDate(m.end);
-        $('sessionBody').prepend(tr);
-      }
-
-      $('regForm').addEventListener('submit', function(ev){
-        ev.preventDefault();
-        var name = $('fName').value.trim();
-        var phone = $('fPhone').value.trim();
-        var plan = selectedPlan();
-        if (!name){ showMsg('regMsg', 'من فضلك اكتب اسم العضو.', 'err'); $('fName').focus(); return; }
-        if (!/^01[0-9]{9}$/.test(phone.replace(/[\s-]/g,''))){ showMsg('regMsg', 'رقم الموبايل لازم يكون 11 رقم ويبدأ بـ 01.', 'err'); $('fPhone').focus(); return; }
-        if (!plan){ showMsg('regMsg', 'من فضلك اختر الباقة.', 'err'); return; }
-        var isPT = plan.value === 'PT';
-        var coach = $('fCoach').value;
-        if (isPT && !coach){ showMsg('regMsg', 'باقة الـ PT لازم تختار لها مدرب معين.', 'err'); $('fCoach').focus(); return; }
-
-        var days = parseInt(plan.getAttribute('data-days'), 10);
-        var start = today();
-        var end = addDays(start, days);
-        var payload = {
-          name: name, phone: phone,
-          birthday: $('fBirth').value || '', gender: $('fGender').value,
-          goal: $('fGoal').value, emergency: $('fEmergency').value.trim(),
-          height: $('fHeight').value || '', weight: $('fWeight').value || '',
-          health: $('fHealth').value.trim(),
-          photo: $('fPhoto').value.trim(),
-          plan: plan.value, coach: isPT ? coach : '',
-          sessions: isPT ? ($('fSessions').value || '12') : '',
-          payMethod: $('fPayMethod').value, paid: $('fPaid').value || '0',
-          startDate: start.toISOString().slice(0,10), endDate: end.toISOString().slice(0,10)
-        };
-
-        var btn = $('regSubmit');
-        btn.disabled = true; btn.textContent = 'بيتسجل…';
-
-        function done(id, viaSheet){
-          var m = { id: id, name: name, plan: plan.value, status:'Active', start: start, end: end };
-          members.push(m);
-          addSessionRow(m);
-          var el = $('regMsg');
-          el.className = 'msg show good';
-          el.innerHTML = (viaSheet ? 'اتسجل بنجاح في الشيت ✅' : 'اتسجل في الوضع التجريبي — البيانات دي في الجلسة دي بس ومش في الشيت، اربط الـ Webhooks عشان التسجيل يوصل للشيت') + '<div class="success-id"></div><div class="success-details"></div>';
-          el.querySelector('.success-id').textContent = id;
-          el.querySelector('.success-details').innerHTML =
-            'العضو: <b></b> — الباقة: <b></b><br>الاشتراك ساري لحد <b></b> — فاضل <b>' + days + ' يوم</b>' +
-            (isPT ? '<br>المدرب: <b></b> — الجلسات: <b></b>' : '');
-          var bs = el.querySelectorAll('.success-details b');
-          bs[0].textContent = name; bs[1].textContent = plan.value; bs[2].textContent = fmtDate(end);
-          if (isPT){ bs[3].textContent = coach; bs[4].textContent = payload.sessions; }
-          btn.disabled = false; btn.textContent = 'تسجيل العضو';
-          $('regForm').reset();
-          onPlanChange();
-        }
-        function fail(text){
-          showMsg('regMsg', text, 'err');
-          btn.disabled = false; btn.textContent = 'تسجيل العضو';
-        }
-
-        if (WEBHOOK_REGISTER_URL){
-          fetch(WEBHOOK_REGISTER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          }).then(function(res){
-            if (!res.ok) throw new Error('bad');
-            return res.json().catch(function(){ return {}; });
-          }).then(function(data){
-            done((data && (data.id || data.memberId)) || genId(), true);
-          }).catch(function(){
-            fail('حصلت مشكلة في الاتصال بـ n8n — اتأكد إن الـ Workflow شغال وإن اللينك صح، وحاول تاني.');
-          });
-        } else {
-          setTimeout(function(){ done(genId(), false); }, 350);
-        }
-      });
-
-      /* ---------- Check ---------- */
-      function renderResult(kind, name, msg, detHtml){
-        var el = $('checkResult');
-        el.className = 'result show ' + kind;
-        el.innerHTML = (name ? '<p class="rname"></p>' : '') + '<p class="rmsg"></p>' + (detHtml ? '<p class="rdet"></p>' : '');
-        if (name) el.querySelector('.rname').textContent = name;
-        el.querySelector('.rmsg').textContent = msg;
-        if (detHtml) el.querySelector('.rdet').innerHTML = detHtml;
-      }
-      function renderFromMember(m){
-        var state = memberState(m);
-        if (state === 'active'){
-          var left = daysBetween(today(), m.end);
-          renderResult('ok', m.name, 'تمام ✅ الاشتراك ساري — أهلاً بيك في الجيم',
-            'الباقة: <b>' + m.plan + '</b> — فاضل <b>' + left + ' يوم</b> — بينتهي <b>' + fmtDate(m.end) + '</b>');
-        } else if (state === 'expired'){
-          renderResult('exp', m.name, 'الاشتراك منتهي ⛔ لازم تجدد قبل الدخول',
-            'الباقة: <b>' + m.plan + '</b> — انتهى يوم <b>' + fmtDate(m.end) + '</b> من ' + Math.abs(daysBetween(today(), m.end)) + ' يوم');
-        } else if (state === 'frozen'){
-          renderResult('frz', m.name, 'الاشتراك متجمد دلوقتي ❄️',
-            'الباقة: <b>' + m.plan + '</b> — بينتهي <b>' + fmtDate(m.end) + '</b> — كلّم الإدارة لفك التجميد');
-        } else {
-          renderResult('exp', m.name, 'العضوية ملغية ⛔', 'كلّم الإدارة لو حابب ترجع تفعّل اشتراكك.');
-        }
-      }
-
-      $('checkForm').addEventListener('submit', function(ev){
-        ev.preventDefault();
-        var id = $('checkId').value.trim();
-        if (!id){ renderResult('nf', '', 'اكتب رقم العضوية الأول', ''); return; }
-        var btn = $('checkSubmit');
-        btn.disabled = true; btn.textContent = 'بيتحقق…';
-
-        function finish(){ btn.disabled = false; btn.textContent = 'تحقق'; }
-
-        if (WEBHOOK_CHECK_URL){
-          var url = WEBHOOK_CHECK_URL + (WEBHOOK_CHECK_URL.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id);
-          fetch(url).then(function(res){
-            if (res.status === 404) throw new Error('nf');
-            if (!res.ok) throw new Error('bad');
-            return res.json();
-          }).then(function(data){
-            if (!data || !data.found || !data.name){
-              renderResult('nf', '', 'رقم العضوية ده مش موجود', 'اتأكد من الرقم وحاول تاني، أو سجّل العضو من صفحة التسجيل.');
-            } else {
-              var m = { id: id, name: data.name, plan: data.plan || '—',
-                status: data.status || 'Active',
-                start: data.startDate ? new Date(data.startDate) : today(),
-                end: data.endDate ? new Date(data.endDate) : today() };
-              renderFromMember(m);
-            }
-            finish();
-          }).catch(function(err){
-            if (err.message === 'nf'){
-              renderResult('nf', '', 'رقم العضوية ده مش موجود', 'اتأكد من الرقم وحاول تاني، أو سجّل العضو من صفحة التسجيل.');
-            } else {
-              renderResult('nf', '', 'حصلت مشكلة في الاتصال بـ n8n', 'اتأكد إن الـ Workflow شغال وإن اللينك صح، وحاول تاني.');
-            }
-            finish();
-          });
-        } else {
-          setTimeout(function(){
-            var m = findMember(id);
-            if (!m){
-              renderResult('nf', '', 'رقم العضوية ده مش موجود', 'اتأكد من الرقم وحاول تاني، أو سجّل العضو من صفحة التسجيل.');
-            } else {
-              renderFromMember(m);
-            }
-            finish();
-          }, 250);
-        }
-      });
-
-      /* ---------- Webhook settings (session only) ---------- */
-      $('applyHooks').addEventListener('click', function(){
-        WEBHOOK_REGISTER_URL = $('setRegister').value.trim();
-        WEBHOOK_CHECK_URL = $('setCheck').value.trim();
-        refreshMode();
-        if (WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL){
-          showMsg('hookMsg', 'اتفعّل الربط للجلسة دي ✅ جرّب التسجيل والتحقق دلوقتي.', 'good');
-        } else {
-          showMsg('hookMsg', 'الصق لينك Webhook واحد على الأقل الأول.', 'err');
-        }
-      });
-      $('clearHooks').addEventListener('click', function(){
-        WEBHOOK_REGISTER_URL = ''; WEBHOOK_CHECK_URL = '';
-        $('setRegister').value = ''; $('setCheck').value = '';
-        refreshMode();
-        showMsg('hookMsg', 'رجعنا للوضع التجريبي.', 'good');
-      });
-
-      /* ---------- Download this file ---------- */
-      function downloadSelf(){
-        var html = '<!doctype html>\n' + document.documentElement.outerHTML;
-        /* bake in any webhook URLs typed in the settings panel */
-        var reg = $('setRegister').value.trim() || WEBHOOK_REGISTER_URL;
-        var chk = $('setCheck').value.trim() || WEBHOOK_CHECK_URL;
-        html = html.replace(/var WEBHOOK_REGISTER_URL = "[^"]*";/, 'var WEBHOOK_REGISTER_URL = "' + reg + '";');
-        html = html.replace(/var WEBHOOK_CHECK_URL = "[^"]*";/, 'var WEBHOOK_CHECK_URL = "' + chk + '";');
-        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-      }
-      $('downloadTop').addEventListener('click', downloadSelf);
-      $('downloadHost').addEventListener('click', downloadSelf);
-
+    });
+    $('applyHooks').addEventListener('click', function () {
+      WEBHOOK_REGISTER_URL = $('setRegister').value.trim();
+      WEBHOOK_CHECK_URL = $('setCheck').value.trim();
       refreshMode();
-    </script>
-  </body>
+      if (WEBHOOK_REGISTER_URL || WEBHOOK_CHECK_URL) showMsg('hookMsg', 'Connected for this session. Try registering and checking now.', 'ok');
+      else showMsg('hookMsg', 'Paste at least one webhook link first.', 'error');
+    });
+    $('clearHooks').addEventListener('click', function () {
+      WEBHOOK_REGISTER_URL = ''; WEBHOOK_CHECK_URL = '';
+      $('setRegister').value = ''; $('setCheck').value = '';
+      refreshMode();
+      showMsg('hookMsg', 'Back to demo mode.', 'ok');
+    });
+    $('downloadBtn').addEventListener('click', function () {
+      var html = '<!doctype html>\n' + document.documentElement.outerHTML;
+      var reg = $('setRegister').value.trim() || WEBHOOK_REGISTER_URL;
+      var chk = $('setCheck').value.trim() || WEBHOOK_CHECK_URL;
+      html = html.replace(/var WEBHOOK_REGISTER_URL = "[^"]*";/, 'var WEBHOOK_REGISTER_URL = "' + reg + '";');
+      html = html.replace(/var WEBHOOK_CHECK_URL = "[^"]*";/, 'var WEBHOOK_CHECK_URL = "' + chk + '";');
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    });
+    refreshMode();
+  </script>
+</body>
 </html>
