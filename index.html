@@ -317,7 +317,12 @@
 
       var btn = $('regSubmit');
       btn.disabled = true; btn.textContent = 'Registering…';
-      fetch(WEBHOOK_REGISTER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      // text/plain (not application/json) on purpose: a JSON content type
+      // makes the browser send a CORS preflight (OPTIONS) first, which the
+      // n8n webhook does not answer, so the request never reaches n8n.
+      // text/plain is a "simple" request, no preflight. The workflow's
+      // Parse node JSON.parses the string body.
+      fetch(WEBHOOK_REGISTER_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) })
         .then(function (res) { if (!res.ok) throw new Error('bad'); return res.json().catch(function () { return {}; }); })
         .then(function (data) {
           btn.disabled = false; btn.textContent = 'Register Member';
