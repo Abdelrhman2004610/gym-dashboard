@@ -143,12 +143,12 @@
 
           <label>Plan <span class="req">*</span></label>
           <div class="plans">
-            <label class="plan"><input type="radio" name="plan" value="Monthly" data-days="30" /><span>Monthly<small>30 days</small></span></label>
-            <label class="plan"><input type="radio" name="plan" value="3 Months" data-days="90" /><span>3 Months<small>90 days</small></span></label>
-            <label class="plan"><input type="radio" name="plan" value="6 Months" data-days="180" /><span>6 Months<small>180 days</small></span></label>
-            <label class="plan"><input type="radio" name="plan" value="Yearly" data-days="365" /><span>Yearly<small>365 days</small></span></label>
-            <label class="plan"><input type="radio" name="plan" value="Student" data-days="30" /><span>Student<small>30 days</small></span></label>
-            <label class="plan"><input type="radio" name="plan" value="PT" data-days="30" /><span>Personal Training<small>30 days + coach</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="monthly" data-days="30" /><span>Monthly<small>30 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="3months" data-days="90" /><span>3 Months<small>90 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="6months" data-days="180" /><span>6 Months<small>180 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="yearly" data-days="365" /><span>Yearly<small>365 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="student" data-days="30" /><span>Student<small>30 days</small></span></label>
+            <label class="plan"><input type="radio" name="plan" value="pt" data-days="30" /><span>Personal Training<small>30 days + coach</small></span></label>
           </div>
 
           <div id="coachField" style="display:none">
@@ -216,7 +216,11 @@
 
   <script>
     // n8n Production Webhook URLs — fill these in with your own URLs.
-    var WEBHOOK_REGISTER_URL = "";
+    // NOTE: this is the test URL Abdelrhman gave on 2026-11-25. It only
+    // works while the workflow is listening in the n8n editor. Replace it
+    // with the Production URL (…/webhook/gym-register) after activating
+    // the workflow, and do the same for the check URL below.
+    var WEBHOOK_REGISTER_URL = "https://n8n-abdelrhman.me/webhook-test/0fbc5e92-9b3a-4341-a3c4-21a38b922a80";
     var WEBHOOK_CHECK_URL = "";
 
     function $(id) { return document.getElementById(id); }
@@ -243,7 +247,7 @@
     }
     function onPlanChange() {
       var p = selectedPlan();
-      $('coachField').style.display = (p && p.value === 'PT') ? '' : 'none';
+      $('coachField').style.display = (p && p.value === 'pt') ? '' : 'none';
       var prev = $('expiryPreview');
       if (p) {
         var days = parseInt(p.getAttribute('data-days'), 10);
@@ -292,7 +296,7 @@
       if (!name) { showMsg('regMsg', 'Please enter the member name.', 'error'); $('fName').focus(); return; }
       if (!/^01[0-9]{9}$/.test(phone)) { showMsg('regMsg', 'Phone number must be 11 digits and start with 01.', 'error'); $('fPhone').focus(); return; }
       if (!plan) { showMsg('regMsg', 'Please choose a plan.', 'error'); return; }
-      var isPT = plan.value === 'PT';
+      var isPT = plan.value === 'pt';
       var coach = $('fCoach').value;
       if (isPT && !coach) { showMsg('regMsg', 'Personal Training needs a coach.', 'error'); $('fCoach').focus(); return; }
       if (!WEBHOOK_REGISTER_URL) { showMsg('regMsg', 'Registration is not available right now. Please try again later.', 'error'); return; }
@@ -300,6 +304,8 @@
       var days = parseInt(plan.getAttribute('data-days'), 10);
       var start = today();
       var end = addDays(start, days);
+      var planLabels = { monthly: 'Monthly', '3months': '3 Months', '6months': '6 Months', yearly: 'Yearly', student: 'Student', pt: 'Personal Training' };
+      var planLabel = planLabels[plan.value] || plan.value;
       var payload = {
         name: name, phone: phone, birthday: $('fBirth').value || '',
         goal: $('fGoal').value, photo: $('fPhoto').value.trim(),
@@ -315,7 +321,11 @@
         .then(function (res) { if (!res.ok) throw new Error('bad'); return res.json().catch(function () { return {}; }); })
         .then(function (data) {
           btn.disabled = false; btn.textContent = 'Register Member';
-          showSuccess((data && (data.id || data.memberId)) || genId(), name, plan.value, end, isPT ? coach : '');
+          if (data && data.ok === false) {
+            showMsg('regMsg', data.message || 'Registration failed. Please check the details and try again.', 'error');
+            return;
+          }
+          showSuccess((data && (data.id || data.memberId)) || genId(), name, data && data.plan ? data.plan : planLabel, end, isPT ? coach : '');
         })
         .catch(function () {
           btn.disabled = false; btn.textContent = 'Register Member';
